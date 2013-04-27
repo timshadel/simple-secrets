@@ -1,0 +1,27 @@
+{
+  "name": "simple-crypto",
+  "version": "1.0.0",
+  "description": "simple, opinionated library encrypting small packets of data",
+  "keywords": [
+    "crypto",
+    "aes",
+    "simple"
+  ],
+  "author": "Tim Shadel <tim@shadelsoftware.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/timshadel/simple-crypto.git"
+  },
+  "dependencies": {
+    "base64url": "0.0.4",
+    "msgpack": "~0.1.8"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "expect.js": "*"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "main": "index"
+}
