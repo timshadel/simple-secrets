@@ -44,6 +44,7 @@ function crypto(config) {
     var k = context.keyId;
     var keyId = [ k[0], k[1], k[2], k[3] ];
     var data = msg.pack(object);
+    var cipher = encrypt(data, makeKey(context.key, role.server.crypt))
     var mac = authenticate(keyId, data, makeKey(context.key, role.server.mac));
     return base64url(msg.pack([keyId, data.toString('binary'), mac.toString('binary')]));
   }

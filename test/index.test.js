@@ -64,4 +64,23 @@ describe('a packet secret maker', function(){
     expect(mac).to.eql(authenticator.read());
   });
 
+  it('should encrypt the message', function() {
+    var key = '0123456789abcdef0123456789abcdef';
+    var packet = msg.unpack(base64url.toBuffer(crypto({key: key})({})));
+    var keyId = new Buffer(packet[0], 'binary');
+    var data = new Buffer(packet[1], 'binary');
+    var mac = new Buffer(packet[2], 'binary');
+
+    // The data key is derived from the main key + key role
+    var hash = node_crypto.createHash('sha256');
+    hash.write(key);
+    hash.write("simple-crypto/server-crypt");
+    hash.end();
+    var decipher = node_crypto.createDecipher('aes256', hash.read());
+    decipher.write(data);
+    decipher.end();
+
+    expect({}).to.eql(decipher.read());
+  });
+
 });
