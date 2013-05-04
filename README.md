@@ -1,5 +1,5 @@
 
-# simple-crypto [![Build Status](https://travis-ci.org/timshadel/simple-crypto.png?branch=master)](https://travis-ci.org/timshadel/simple-crypto)
+# simple-secrets [![Build Status](https://travis-ci.org/timshadel/simple-secrets.png?branch=master)](https://travis-ci.org/timshadel/simple-secrets)
 
 A simple, opinionated library for encrypting small packets of data securely.
 
@@ -8,9 +8,9 @@ A simple, opinionated library for encrypting small packets of data securely.
 ### Basic
 
 ```js
-var crypto = require('simple-crypto')(config);
+var secrets = require('simple-secrets')(config);
 
-var packet = crypto(data);
+var packet = secrets(data);
 ```
 
 The __`DEBUG`__ environment variable used to enable logging. Give it space- or comma-separated names.

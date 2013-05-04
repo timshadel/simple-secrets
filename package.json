@@ -1,16 +1,18 @@
 {
-  "name": "simple-crypto",
+  "name": "simple-secrets",
   "version": "1.0.0",
   "description": "simple, opinionated library encrypting small packets of data",
   "keywords": [
     "crypto",
     "aes",
-    "simple"
+    "simple",
+    "secret",
+    "encryption"
   ],
   "author": "Tim Shadel <tim@shadelsoftware.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/timshadel/simple-crypto.git"
+    "url": "git+https://github.com/timshadel/simple-secrets.git"
   },
   "dependencies": {
     "base64url": "0.0.4",

@@ -5,7 +5,7 @@ var primitives = require('../lib/primitives')
 describe('primitive crypto functions', function() {
 
   describe('nonce()', function() {
-    it('should return 16random bytes', function() {
+    it('should return 16 random bytes', function() {
       expect(primitives.nonce()).to.have.length(16);
       expect(primitives.nonce()).not.equal(primitives.nonce());
     });
