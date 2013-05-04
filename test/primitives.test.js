@@ -137,7 +137,20 @@ describe('primitive crypto functions', function() {
     });
   });
 
-  describe.skip('encrypt()', function() {
+  describe('encrypt()', function() {
+    it('should encrypt data using a 256-bit key', function() {
+      var key = new Buffer(32); key.fill(0xcd);
+      var data = new Buffer(25); data.fill(0x11);
+
+      var output = primitives.encrypt(data, key);
+      var iv = output[0];
+      var ciphertext = output[1];
+      expect(iv).to.have.length(16);
+      expect(ciphertext).to.have.length(32);
+      var recovered = primitives.decrypt(ciphertext, key, iv);
+      expect(recovered).to.eql(data);
+      expect(recovered).to.not.equal(data);
+    });
   });
 
   describe.skip('decrypt()', function() {
