@@ -139,15 +139,25 @@ describe('primitive crypto functions', function() {
       var key = new Buffer(32); key.fill(0xcd);
       var data = new Buffer(25); data.fill(0x11);
 
-      var output = primitives.encrypt(data, key);
-      var iv = output[0];
-      var ciphertext = output[1];
+      var binmessage = primitives.encrypt(data, key);
+      var iv = binmessage.slice(0,16);
+      var ciphertext = binmessage.slice(16);
 
       expect(iv).to.have.length(16);
       expect(ciphertext).to.have.length(32);
       var recovered = primitives.decrypt(ciphertext, key, iv);
       expect(recovered).to.eql(data);
       expect(recovered).to.not.equal(data);
+    });
+
+    it('should return a Buffer of (iv || ciphertext)', function() {
+      var key = new Buffer(32); key.fill(0xcd);
+      var data = new Buffer(25); data.fill(0x11);
+
+      var output = primitives.encrypt(data, key);
+      expect(output).to.be.a(Buffer);
+      // 16-byte IV, 32 bytes to encrypt the 25 data bytes
+      expect(output).to.have.length(48);
     });
   });
 
@@ -210,9 +220,9 @@ describe('primitive crypto functions', function() {
       var naiveAC = benchmark(naiveEquals, a, c);
 
       // All constant-time comparisons should be roughly equal in time
-      expect(difference(benchAA, benchAB)).to.be.greaterThan(0.975);
-      expect(difference(benchAA, benchAC)).to.be.greaterThan(0.975);
-      expect(difference(benchAB, benchAC)).to.be.greaterThan(0.975);
+      expect(difference(benchAA, benchAB)).to.be.greaterThan(0.95);
+      expect(difference(benchAA, benchAC)).to.be.greaterThan(0.95);
+      expect(difference(benchAB, benchAC)).to.be.greaterThan(0.95);
 
       // Naive comparisons of the same item with itself, or with obviously
       // different items should be ridiculously fast
@@ -328,6 +338,24 @@ describe('primitive crypto functions', function() {
       // different identity, same contents
       expect(b).not.to.equal(z);
       expect(b).to.eql(z);
+    });
+
+    it('should zero multiple buffers', function() {
+      var b = new Buffer([74, 68, 69, 73, 20, 69, 73, 20, 73, 0x6f, 0x6d, 65]);
+      var c = new Buffer([69, 73, 20, 73, 0x6f, 0x6d, 65, 74, 68, 69, 73, 20]);
+      var z = new Buffer([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+      // different contents
+      expect(b).not.to.eql(z);
+      expect(c).not.to.eql(z);
+
+      primitives.zero(b, c);
+
+      // different identity, same contents
+      expect(b).not.to.equal(z);
+      expect(b).to.eql(z);
+      expect(c).not.to.equal(z);
+      expect(c).to.eql(z);
     });
 
   });
