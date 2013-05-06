@@ -7,20 +7,29 @@ A simple, opinionated library for encrypting small packets of data securely.
 
 ### Basic
 
+Send:
+
 ```js
-var secrets = require('simple-secrets')(config);
+var secrets = require('simple-secrets');
 
-var packet = secrets(data);
+// Try `head /dev/urandom | shasum -a 256` to make a decent 256-bit key
+var master_key = new Buffer('<64-char hex string (32 bytes, 256 bits)>', 'hex');
+var sender = secrets(master_key);
+var packet = sender.pack('this is a secret message');
 ```
 
-The __`DEBUG`__ environment variable used to enable logging. Give it space- or comma-separated names.
+Receive:
 
-```console
-$ DEBUG=mything node myapp
-doing something useful
-doing something useful
-doing something useful
+```js
+var secrets = require('simple-secrets');
+
+// Same shared key
+var master_key = new Buffer('<shared-key-hex>', 'hex');
+var sender = secrets(master_key);
+var packet = new Buffer('<read data from somewhere>');
+var secret_message = sender.unpack(packet);
 ```
+
 
 ## Can you add ...
 
