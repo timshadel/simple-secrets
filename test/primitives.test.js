@@ -91,9 +91,6 @@ describe('primitive crypto functions', function() {
       expect(function(){ primitives.compare(str, str); }).to.throwException(/not a buffer/i);
       expect(function(){ primitives.compare(buf, str); }).to.throwException(/not a buffer/i);
       expect(function(){ primitives.compare(buf, buf); }).not.to.throwException();
-
-      expect(function(){ primitives.stringify(str); }).to.throwException(/not a buffer/i);
-      expect(function(){ primitives.stringify(buf); }).not.to.throwException();
     });
   });
 
@@ -145,6 +142,7 @@ describe('primitive crypto functions', function() {
       var output = primitives.encrypt(data, key);
       var iv = output[0];
       var ciphertext = output[1];
+
       expect(iv).to.have.length(16);
       expect(ciphertext).to.have.length(32);
       var recovered = primitives.decrypt(ciphertext, key, iv);
@@ -153,28 +151,163 @@ describe('primitive crypto functions', function() {
     });
   });
 
-  describe.skip('decrypt()', function() {
+  describe('decrypt()', function() {
+    it('should decrypt data using a 256-bit key', function() {
+      var key = new Buffer(32); key.fill(0xcd);
+      var plaintext = new Buffer(25); plaintext.fill(0x11);
+      var iv = new Buffer('d4a5794c81015dde3b9b0648f2b9f5b9', 'hex');
+      var ciphertext = new Buffer('cb7f804ec83617144aa261f24af07023a91a3864601a666edea98938f2702dbc', 'hex');
+
+      var recovered = primitives.decrypt(ciphertext, key, iv);
+      expect(recovered).to.eql(plaintext);
+      expect(recovered).to.not.equal(plaintext);
+    });
   });
 
-  describe.skip('identify()', function() {
+  describe('identify()', function() {
+    it('should calculate an id for a key', function() {
+      var key = new Buffer(32); key.fill(0xab);
+      var id = primitives.identify(key);
+
+      expect(id).to.have.length(6);
+      expect(id).to.eql(new Buffer('0d081b0889d7', 'hex'));
+    });
   });
 
-  describe.skip('mac()', function() {
+  describe('mac()', function() {
+    it('should create a message authentication code', function() {
+      var key = new Buffer(32); key.fill(0x9f);
+      var data = new Buffer(25); data.fill(0x11);
+      var mac = primitives.mac(data, key);
+
+      expect(mac).to.have.length(32);
+      expect(mac).to.eql(new Buffer('adf1793fdef44c54a2c01513c0c7e4e71411600410edbde61558db12d0a01c65', 'hex'));
+    });
   });
 
-  describe.skip('compare()', function() {
+  describe('compare()', function() {
+    it('should correctly distinguish data equality', function() {
+      var a = new Buffer(25); a.fill(0x11);
+      var b = new Buffer(25); b.fill(0x12);
+      var c = new Buffer(25); c.fill(0x11);
+
+      expect(primitives.compare(a,a)).to.be.ok();
+      expect(primitives.compare(a,b)).to.not.be.ok();
+      expect(primitives.compare(a,c)).to.be.ok();
+    });
+
+    it('should take just as long to compare different data as identical data', function() {
+      var a = new Buffer(250000); a.fill(0xff);
+      var b = new Buffer(250000); b.fill(0x00);
+      var c = new Buffer(250000); c.fill(0xff);
+
+      var benchAA = benchmark(primitives.compare, a, a);
+      var benchAB = benchmark(primitives.compare, a, b);
+      var benchAC = benchmark(primitives.compare, a, c);
+
+      var naiveAA = benchmark(naiveEquals, a, a);
+      var naiveAB = benchmark(naiveEquals, a, b);
+      var naiveAC = benchmark(naiveEquals, a, c);
+
+      // All constant-time comparisons should be roughly equal in time
+      expect(difference(benchAA, benchAB)).to.be.greaterThan(0.975);
+      expect(difference(benchAA, benchAC)).to.be.greaterThan(0.975);
+      expect(difference(benchAB, benchAC)).to.be.greaterThan(0.975);
+
+      // Naive comparisons of the same item with itself, or with obviously
+      // different items should be ridiculously fast
+      expect(difference(benchAA, naiveAA)).to.be.lessThan(0.01);
+      expect(difference(benchAB, naiveAB)).to.be.lessThan(0.01);
+
+      // It should take just about as long to compare identical arrays as the constant time compare
+      expect(difference(benchAC, naiveAC)).to.be.greaterThan(0.90);
+
+      function naiveEquals(a, b) {
+        if (a === b) return true;
+        for (var i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function benchmark(fn, a, b) {
+        var time = process.hrtime();
+        for (var i = 0; i < 100; i++) {
+          fn(a, b);
+        };
+        var diff = process.hrtime(time);
+        return diff[0] * 1e9 + diff[1];
+      }
+
+      function difference(first, second) {
+        var smaller = Math.min(first, second);
+        var larger = Math.max(first, second);
+        return (smaller / larger);
+      }
+
+    });
   });
 
-  describe.skip('binify()', function() {
+  describe('binify()', function() {
+    it('should require a base64url string', function() {
+      expect(function(){ primitives.binify(123); }).to.throwException(/string required/i);
+      expect(function(){ primitives.binify('arstnei; another.'); }).to.throwException(/base64url/i);
+      expect(function(){ primitives.binify('cartinir90_-'); }).to.not.throwException();
+    });
+
+    it('should return a Buffer', function() {
+      var bin = primitives.binify('abcd');
+      expect(bin).to.be.a(Buffer);
+      expect(bin).to.have.length(3);
+    });
   });
 
-  describe.skip('stringify()', function() {
+  describe('stringify()', function() {
+    it('should require a buffer', function() {
+      var buf = new Buffer(10); buf.fill(0x32);
+      expect(function(){ primitives.stringify(''); }).to.throwException(/not a buffer/i);
+      expect(function(){ primitives.stringify(buf); }).not.to.throwException();
+    });
+
+    it('should return a base64url string', function() {
+      var buf = new Buffer(10); buf.fill(0x32);
+      var str = primitives.stringify(buf);
+      expect(str).to.be.a('string');
+      expect(str).to.have.length(14);
+      expect(str).to.match(/^[a-zA-Z0-9_-]+$/);
+    });
   });
 
-  describe.skip('serialize()', function() {
+  describe('serialize()', function() {
+    it('should accept javascript object', function() {
+      expect(function(){ primitives.serialize(1); }).to.not.throwException();
+      expect(function(){ primitives.serialize('a'); }).to.not.throwException();
+      expect(function(){ primitives.serialize([]); }).to.not.throwException();
+      expect(function(){ primitives.serialize({}); }).to.not.throwException();
+    });
+
+    it('should return a Buffer', function() {
+      var bin = primitives.serialize('abcd');
+      expect(bin).to.be.a(Buffer);
+      expect(bin).to.have.length(5);
+    });
   });
 
-  describe.skip('deserialize()', function() {
+  describe('deserialize()', function() {
+    it('should require a buffer', function() {
+      var buf = new Buffer(10); buf.fill(0x32);
+      expect(function(){ primitives.deserialize(''); }).to.throwException(/not a buffer/i);
+      expect(function(){ primitives.deserialize(buf); }).not.to.throwException();
+    });
+
+    it('should return a javascript primitive or object', function() {
+      expect(primitives.deserialize(primitives.serialize(1))).to.eql(1);
+      expect(primitives.deserialize(primitives.serialize('abcd'))).to.eql('abcd');
+      expect(primitives.deserialize(primitives.serialize([]))).to.eql([]);
+      expect(primitives.deserialize(primitives.serialize({}))).to.eql({});
+    });
   });
 
   describe('zero()', function() {
