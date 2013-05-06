@@ -21,7 +21,7 @@ describe('a secret packet', function() {
     var bin = primitives.binify(p);
 
     expect(bin).to.be.a(Buffer);
-    expect(bin).to.have.length(86);
+    expect(bin).to.have.length(102);
   });
 
   it('should have a mac which authenticates the message', function() {
@@ -47,28 +47,16 @@ describe('a secret packet', function() {
     var master_key = new Buffer(32); master_key.fill(0xbc);
     var sender = packet(master_key);
     var p = sender.pack('this is a secret message');
-    var bin = primitives.binify(p);
-    var binmsg = bin.slice(0, -32);
-    var mac = bin.slice(-32);
-    var keyId = binmsg.slice(0, 6);
-    var iv = binmsg.slice(6,22);
-    var ciphertext = binmsg.slice(22);
 
-    var key = primitives.derive_sender_key(master_key);
-    var plainpacket = primitives.decrypt(ciphertext, key, iv);
-    var original = primitives.deserialize(plainpacket);
-
-    expect(iv).to.be.a(Buffer);
-    expect(iv).to.have.length(16);
-    expect(keyId).to.eql(primitives.identify(master_key));
-    expect(original).to.eql('this is a secret message');
+    expect(sender.unpack(p)).to.eql('this is a secret message');
   });
 
-
-  it('should not be recoverable without the key', function() {
+  it('should not be recoverable under a different key', function() {
     var master_key = new Buffer(32); master_key.fill(0xbc);
     var sender = packet(master_key);
     var p = sender.pack('this is a secret message');
+    master_key.fill(0xcb);
+    sender = packet(master_key);
 
     expect.Assertion.prototype.with = function() {
       expect(this.obj).to.be.a('function');
@@ -77,23 +65,7 @@ describe('a secret packet', function() {
       return expect(function() { fn.apply(null, args); });
     }
 
-    // Now we have a different key
-    master_key.fill(0xcb);
-
-    var bin = primitives.binify(p);
-    var iv = bin.slice(6,22);
-    var ciphertext = bin.slice(22, -32);
-
-    var key = primitives.derive_sender_key(master_key);
-    expect(primitives.decrypt).with(ciphertext, key, iv).to.throwException(/bad decrypt/);
-  });
-
-  it('should be recoverable', function() {
-    var master_key = new Buffer(32); master_key.fill(0xbc);
-    var sender = packet(master_key);
-    var p = sender.pack('this is a secret message');
-
-    expect(sender.unpack(p)).to.eql('this is a secret message');
+    expect(sender.unpack(p)).to.not.be.ok();
   });
 
 });
