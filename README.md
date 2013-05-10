@@ -1,7 +1,9 @@
 
 # simple-secrets [![Build Status](https://travis-ci.org/timshadel/simple-secrets.png?branch=master)](https://travis-ci.org/timshadel/simple-secrets)
 
-A simple, opinionated library for encrypting small packets of data securely.
+A simple, opinionated library for encrypting small packets of data securely. Designed for exchanging tokens among systems written in a variety of programming languages: [Ruby][simple-secrets.rb].
+
+[simple-secrets.rb]: https://github.com/timshadel/simple-secrets.rb
 
 ## Examples
 
@@ -29,8 +31,8 @@ var secrets = require('simple-secrets');
 // Same shared key
 var master_key = new Buffer('<shared-key-hex>', 'hex');
 var sender = secrets(master_key);
-var packet = new Buffer('<read data from somewhere>');
-// => 'OqlG6KVMeyFYmunboS3HIXkvN_nXKTxg2yNkQydZOhvJrZvmfov54hUmkkiZCnlhzyrlwOJkbV7XnPPbqvdzZ6TsFOO5YdmxjxRksZmeIhbhLaMiDbfsOuSY1dBn_ZgtYCw-FRIM'
+// read data from somewhere
+var packet = 'OqlG6KVMeyFYmunboS3HIXkvN_nXKTxg2yNkQydZOhvJrZvmfov54hUmkkiZCnlhzyrlwOJkbV7XnPPbqvdzZ6TsFOO5YdmxjxRksZmeIhbhLaMiDbfsOuSY1dBn_ZgtYCw-FRIM'
 var secret_message = sender.unpack(packet);
 // => 'this is a secret message'
 ```
