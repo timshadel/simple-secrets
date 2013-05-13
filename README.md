@@ -1,9 +1,11 @@
 
 # simple-secrets [![Build Status](https://travis-ci.org/timshadel/simple-secrets.png?branch=master)](https://travis-ci.org/timshadel/simple-secrets)
 
-A simple, opinionated library for encrypting small packets of data securely. Designed for exchanging tokens among systems written in a variety of programming languages: [Ruby][simple-secrets.rb].
+The Node.js implementation of a simple, opinionated library for encrypting small packets of data securely. Designed for exchanging tokens among systems written in a variety of programming languages: [Node.js][simple-secrets], [Ruby][simple-secrets.rb], [Objective-C][SimpleSecrets].
 
+[simple-secrets]: https://github.com/timshadel/simple-secrets
 [simple-secrets.rb]: https://github.com/timshadel/simple-secrets.rb
+[SimpleSecrets]: https://github.com/timshadel/SimpleSecrets
 
 ## Examples
 
