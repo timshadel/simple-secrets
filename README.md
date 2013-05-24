@@ -11,33 +11,13 @@ The Node.js implementation of a simple, opinionated library for encrypting small
 
 ## Overview
 
-simple-secrets creates a standard way to turn a JSON-like object into a websafe, encrypted string. We make a number of very carefully chosen decisions to make it as cross-environment compatible as possible. Here's the basic idea
+simple-secrets creates a standard way to turn a JSON-like object into a websafe, encrypted string. We make 4 carefully chosen decisions to create secrets that are as cross-environment compatible as possible.  Here's a visualization of what's happening:
 
-     <Object in Memory>     - Start with an object in the target language
-            |
-            V
-        (msgpack)           - msgpack is a very fast, binary format similar in nature to JSON.
-            |                 It transforms data into raw bytes compactly, and predictibly.
-            V
-    [    raw bytes     ]    - Raw bytes are the breakfast of champion crypto libs.
-            |
-            V
-         (nonce)            - A 128-bit nonce is prepended to the raw bytes, since those often have
-            |                 predictable structure.
-            V
-        (AES-256)           - AES-256 is a decent symmetric cipher, providing reasonable security.
-            |                 A random IV is used for each encryption.
-            V
-      (HMAC-SHA256)         - A symmetric signature that aligns in size and bits of security with
-            |                 AES-256 chosen above. The key identifier, IV, and ciphertext are MAC'd.
-            V
-    [   binary packet  ]    - It's more than just encrypted bytes; there's a specific structure for
-            |                 security. It's got the IV and the HMAC, plus an identifier of the key.
-            V
-    [ base64url string ]    - A string of text that's suitable for use anywhere in HTTP or URIs.
-                              This is awesome since we want to use this for OAuth tokens and more.
+![A diagram of the process used by simple-secrets to pack native objects into encrypted, websafe strings.][packing]
 
-## Examples
+[packing]: ./simple-secrets-packing.png "Overview of simple-secrets packing process"
+
+## Code Examples
 
 ### Basic
 
@@ -69,11 +49,46 @@ var secret_message = sender.unpack(packet);
 // => 'this is a secret message'
 ```
 
+## Core Decisions
 
-## Can you add ...
+### Serialization - msgpack
 
-No. Seriously. But we might replace what we have with what you suggest. We want exactly one, well-worn path. If you have improvements, we want them. If you want alternatives to choose from you should probably keep looking.
+[msgpack][msgpack] is a very fast, binary format similar in nature to JSON. It transforms basic native structures into raw bytes compactly, and predictibly. It has implementations in lots of languages, making it highly compatible between environments.
 
-## License 
+Raw bytes are the breakfast food of champion crypto libs. Small is important byte length greatly impacts both encrypted output length and final encoded string length. This is a foundational decision.
+
+[msgpack]: http://msgpack.org
+
+### Encryption - AES-256-CBC
+
+AES-256 is a good symmetric cipher, providing reasonable security. A random IV is used for each encryption. Our ambitions are for reasonable privacy of content over the course of a year, with the expectation that much of what simple-secrets is used for is valuable for a finite amount of time. AES-256 should far surpass that, but we state our humble expectations knowing that doing crypto is difficult to do right.
+
+### Authentication - HMAC-SHA256
+
+HMAC-SHA256 is a good symmetric authentication primitive. We're aware that Keccak is the new SHA-3 standard for hashing, and has a mode of operation which allows it to produce MACs without the weakness of the length-extension attacks which require older SHA hashes to use the HMAC structure. For now, we're sticking with HMAC-SHA256, but that may change.
+
+### Encoding - base64url
+
+We aim to use secrets produced by this algorithm in several places in HTTP: headers, query string parameters, and message bodies. The base64url encoding allows us to place secrets in all of these places without fear that they'll be incorrectly parsed as indicating the boundary of some key message structure.
+
+### Remnants
+
+We've made other choices, like prepending a 128-bit nonce to the plaintext, including a key identifier as part of the packet, and arranging the binary structure in a specific order for producing and consuming an Encrypt-then-MAC byte array. These choices are important, and are more about the packaging of a message for security than about choosing among algorithm options.
+
+## Discussion
+
+### Crypto Library Implementation
+
+Most of the current implementations use their language bindings to standard OpenSSL libcrypto to do the actual cryptography. Objective-C uses CommonCrypto. In *no case* did we create any cryptographic algorithm implementations. Ours are simply selecting the structure and parameters consistently across a number of implementations to ensure that they are easy to use between systems.
+
+### Don't Trust Us Implicitly
+
+Read the code. Test it. Look for problems, and tell us when you find them. Many eyes make all bugs shallow, and that's especially important in crypto code.
+
+### Decision Updates
+
+We want exactly one, well-worn path. If you have improvements to our choices, our implementations, or our structures, we want them. If you want the option to choose alternatives at runtime, you should probably keep looking.
+
+### License 
 
 MIT.
