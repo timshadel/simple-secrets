@@ -9,6 +9,34 @@ The Node.js implementation of a simple, opinionated library for encrypting small
 [simple-secrets.java]: https://github.com/timshadel/simple-secrets.java
 [simple_secrets.erl]: https://github.com/CamShaft/simple_secrets.erl
 
+## Overview
+
+simple-secrets creates a standard way to turn a JSON-like object into a websafe, encrypted string. We make a number of very carefully chosen decisions to make it as cross-environment compatible as possible. Here's the basic idea
+
+     <Object in Memory>     - Start with an object in the target language
+            |
+            V
+        (msgpack)           - msgpack is a very fast, binary format similar in nature to JSON.
+            |                 It transforms data into raw bytes compactly, and predictibly.
+            V
+    [    raw bytes     ]    - Raw bytes are the breakfast of champion crypto libs.
+            |
+            V
+         (nonce)            - A 128-bit nonce is prepended to the raw bytes, since those often have
+            |                 predictable structure.
+            V
+        (AES-256)           - AES-256 is a decent symmetric cipher, providing reasonable security.
+            |                 A random IV is used for each encryption.
+            V
+      (HMAC-SHA256)         - A symmetric signature that aligns in size and bits of security with
+            |                 AES-256 chosen above. The key identifier, IV, and ciphertext are MAC'd.
+            V
+    [   binary packet  ]    - It's more than just encrypted bytes; there's a specific structure for
+            |                 security. It's got the IV and the HMAC, plus an identifier of the key.
+            V
+    [ base64url string ]    - A string of text that's suitable for use anywhere in HTTP or URIs.
+                              This is awesome since we want to use this for OAuth tokens and more.
+
 ## Examples
 
 ### Basic
