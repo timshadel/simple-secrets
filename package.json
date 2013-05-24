@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "base64url": "0.0.4",
-    "msgpack": "~0.1.8"
+    "msgpack": "~0.1.8",
+    "sinon": "~1.7.2"
   },
   "devDependencies": {
     "mocha": "*",
