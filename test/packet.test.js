@@ -5,6 +5,34 @@ var packet = require('../lib/packet')
 
 describe('a secret packet', function() {
 
+  it('should accept a 256-bit buffer key', function() {
+    var master_key = new Buffer(32); master_key.fill(0xbc);
+    var sender = packet(master_key);
+    expect(sender).not.to.be.empty();
+  });
+
+  it('should reject buffer keys that aren\'t 256 bits', function() {
+    var master_key = new Buffer(31); master_key.fill(0xbc);
+    expect(function() { packet(master_key); }).to.throwException(/256-bit/i);
+    master_key = new Buffer(33); master_key.fill(0xbc);
+    expect(function() { packet(master_key); }).to.throwException(/256-bit/i);
+  });
+
+  it('should accept a 64-char hex key', function() {
+    var master_key = 'bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc';
+    var sender = packet(master_key);
+    expect(sender).not.to.be.empty();
+  });
+
+  it('should reject string keys that aren\'t 64 chars', function() {
+    var master_key = 'bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb';
+    expect(function() { packet(master_key); }).to.throwException(/256-bit/i);
+    master_key = 'bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb';
+    expect(function() { packet(master_key); }).to.throwException(/256-bit/i);
+    master_key = 'bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbG';
+    expect(function() { packet(master_key); }).to.throwException(/256-bit/i);
+  });
+
   it('should be a websafe string', function() {
     var master_key = new Buffer(32); master_key.fill(0xbc);
     var sender = packet(master_key);
