@@ -15,9 +15,9 @@
     "url": "git+https://github.com/timshadel/simple-secrets.git"
   },
   "dependencies": {
-    "base64url": "0.0.4",
-    "msgpack": "~0.1.8",
-    "sinon": "~1.7.2"
+    "base64url": "^0.0.x",
+    "msgpack": "^0.2.x",
+    "sinon": "^1.x"
   },
   "devDependencies": {
     "mocha": "*",
