@@ -1,7 +1,8 @@
 
 var packet = require('../lib/packet')
   , expect = require('expect.js')
-  , primitives = require('../lib/primitives');
+  , primitives = require('../lib/primitives')
+  , helper = require('./helper');
 
 describe('a secret packet', function() {
 
@@ -96,14 +97,12 @@ describe('a secret packet', function() {
     expect(sender.unpack(p)).to.not.be.ok();
   });
 
-  it('should recover full objects', function() {
+  it('should recover full objects with primitives', function() {
     var master_key = new Buffer(32); master_key.fill(0xbc);
     var sender = packet(master_key);
-    var object = { msg:'this is a secret message', date: new Date() };
+    var object = { msg:'this is a secret message', count: 17 };
     var p = sender.pack(object);
 
-    // Message pack turns dates into ISO strings
-    object.date = object.date.toISOString();
     expect(sender.unpack(p)).to.eql(object);
   });
 

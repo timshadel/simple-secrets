@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "base64url": "^0.0.x",
-    "msgpack": "^0.2.x",
+    "msgpack5": "^1.4.0",
     "sinon": "^1.x"
   },
   "devDependencies": {

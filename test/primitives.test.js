@@ -1,6 +1,7 @@
 
 var primitives = require('../lib/primitives')
-  , expect = require('expect.js');
+  , expect = require('expect.js')
+  , helper = require('./helper');
 
 describe('primitive crypto functions', function() {
 
@@ -245,7 +246,7 @@ describe('primitive crypto functions', function() {
 
       function benchmark(fn, a, b) {
         var time = process.hrtime();
-        for (var i = 0; i < 100; i++) {
+        for (var i = 0; i < 250; i++) {
           fn(a, b);
         };
         var diff = process.hrtime(time);
