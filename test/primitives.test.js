@@ -319,6 +319,8 @@ describe('primitive crypto functions', function() {
       expect(primitives.deserialize(primitives.serialize('abcd'))).to.eql('abcd');
       expect(primitives.deserialize(primitives.serialize([]))).to.eql([]);
       expect(primitives.deserialize(primitives.serialize({}))).to.eql({});
+      var buf = new Buffer(10); buf.fill(0x32);
+      expect(primitives.deserialize(primitives.serialize(buf))).to.eql(buf);
     });
   });
 
