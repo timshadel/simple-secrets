@@ -223,6 +223,8 @@ describe('primitive crypto functions', function() {
     // We want to show that the time to comparing equal items is the same as
     // the time to compare different items. And that the time to compare
     // items with regular === is noticeably different.
+    //
+    // http://en.wikipedia.org/wiki/Student's_t-distribution
     it('should take just as long to compare different data as identical data', function() {
       var datas = [ [], [] ];
       var fns = [primitives.compare, primitives.compare];
@@ -236,12 +238,12 @@ describe('primitive crypto functions', function() {
       var resultsAAvsAB = bench(fns, datas);
       var t = stats.t_test_two_sample(resultsAAvsAB[0], resultsAAvsAB[1]);
       t = Math.abs(t);
-      expect(t).to.be.lessThan(3.291);
+      expect(t).to.be.lessThan(1.645); // A hacker may accept 90+% probability of difference
 
       var naiveAAvsAB = bench([naiveEquals, naiveEquals], datas);
       t = stats.t_test_two_sample(naiveAAvsAB[0], naiveAAvsAB[1]);
       t = Math.abs(t);
-      expect(t).to.be.greaterThan(2.576);
+      expect(t).to.be.greaterThan(1.960); // 95% sure that AA <> AB times
 
       function naiveEquals(a, b) {
         if (a === b) return true;
