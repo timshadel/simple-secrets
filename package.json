@@ -21,7 +21,8 @@
   },
   "devDependencies": {
     "mocha": "*",
-    "expect.js": "*"
+    "expect.js": "*",
+    "simple-statistics": "*"
   },
   "scripts": {
     "test": "mocha"

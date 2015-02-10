@@ -1,7 +1,9 @@
 
-var primitives = require('../lib/primitives')
-  , expect = require('expect.js')
-  , helper = require('./helper');
+var primitives = require('../lib/primitives');
+var expect = require('expect.js');
+var helper = require('./helper');
+var crypto = require('crypto');
+var stats = require('simple-statistics');
 
 describe('primitive crypto functions', function() {
 
@@ -207,32 +209,39 @@ describe('primitive crypto functions', function() {
       expect(primitives.compare(a,c)).to.be.ok();
     });
 
-    // This works fine locally, but has tons of variation on build server
-    it.skip('should take just as long to compare different data as identical data', function() {
-      var a = new Buffer(250000); a.fill(0xff);
-      var b = new Buffer(250000); b.fill(0x00);
-      var c = new Buffer(250000); c.fill(0xff);
+    // An attacker shouldn't be able to watch comparisons and learn anything.
+    // That means that by watching the comparisons of lots of things I should
+    // NOT see anything predictably different: both comparisons of identical
+    // items and comparisons of different items should seem to come from the
+    // same statistical distribution. That's what the 2-sided t-test checks.
+    //
+    // The 2-sided t-test produces a single number. That value must be compared
+    // to standard t-value tables, and doing so gives us a confidence level.
+    // We compare the values from our test below to 3.291 for 99.9% confidence
+    //   t-values less than that means the two groups are identical
+    //   t-values more than that means the two groups are distinct
+    // We want to show that the time to comparing equal items is the same as
+    // the time to compare different items. And that the time to compare
+    // items with regular === is noticeably different.
+    it('should take just as long to compare different data as identical data', function() {
+      var datas = [ [], [] ];
+      var fns = [primitives.compare, primitives.compare];
 
-      var benchAA = benchmark(primitives.compare, a, a);
-      var benchAB = benchmark(primitives.compare, a, b);
-      var benchAC = benchmark(primitives.compare, a, c);
+      for (var i = 0; i < 500; i++) {
+        var a = crypto.randomBytes(250);
+        datas[0].push({ a: a, b: invert(a) });
+        datas[1].push({ a: a, b: new Buffer(a) });
+      }
 
-      var naiveAA = benchmark(naiveEquals, a, a);
-      var naiveAB = benchmark(naiveEquals, a, b);
-      var naiveAC = benchmark(naiveEquals, a, c);
+      var resultsAAvsAB = bench(fns, datas);
+      var t = stats.t_test_two_sample(resultsAAvsAB[0], resultsAAvsAB[1]);
+      t = Math.abs(t);
+      expect(t).to.be.lessThan(3.291);
 
-      // All constant-time comparisons should be roughly equal in time
-      expect(difference(benchAA, benchAB)).to.be.greaterThan(0.95);
-      expect(difference(benchAA, benchAC)).to.be.greaterThan(0.95);
-      expect(difference(benchAB, benchAC)).to.be.greaterThan(0.95);
-
-      // Naive comparisons of the same item with itself, or with obviously
-      // different items should be ridiculously fast
-      expect(difference(benchAA, naiveAA)).to.be.lessThan(0.01);
-      expect(difference(benchAB, naiveAB)).to.be.lessThan(0.01);
-
-      // It should take just about as long to compare identical arrays as the constant time compare
-      expect(difference(benchAC, naiveAC)).to.be.greaterThan(0.90);
+      var naiveAAvsAB = bench([naiveEquals, naiveEquals], datas);
+      t = stats.t_test_two_sample(naiveAAvsAB[0], naiveAAvsAB[1]);
+      t = Math.abs(t);
+      expect(t).to.be.greaterThan(2.576);
 
       function naiveEquals(a, b) {
         if (a === b) return true;
@@ -244,19 +253,37 @@ describe('primitive crypto functions', function() {
         return true;
       }
 
-      function benchmark(fn, a, b) {
-        var time = process.hrtime();
-        for (var i = 0; i < 250; i++) {
-          fn(a, b);
-        };
-        var diff = process.hrtime(time);
-        return diff[0] * 1e9 + diff[1];
+      function bench(fns, datas) {
+        var results = [];
+        for (var f = 0; f < fns.length; f++) {
+          results.push([]);
+        }
+        for (var i = 0; i < 1000; i++) {
+          for (var j = 0; j < fns.length; j++) {
+            var data = i % datas[j].length;
+            var a = datas[j][data].a;
+            var b = datas[j][data].b;
+            var fn = fns[j];
+            var time = process.hrtime();
+            fn(a, b);
+            results[j].push(process.hrtime(time));
+          }
+        }
+        for (var r = 0; r < results.length; r++) {
+          var sample = results[r];
+          for (var s = 0; s < sample.length; s++) {
+            sample[s] = sample[s][0] * 1e9 + sample[s][1];
+          }
+        }
+        return results;
       }
 
-      function difference(first, second) {
-        var smaller = Math.min(first, second);
-        var larger = Math.max(first, second);
-        return (smaller / larger);
+      function invert(a) {
+        var b = new Buffer(a.length);
+        for (var i = 0; i < a.length; i++) {
+          b[i] = a[i] ^ 0xff;
+        }
+        return b;
       }
 
     });
