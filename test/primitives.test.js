@@ -229,7 +229,7 @@ describe('primitive crypto functions', function() {
       var datas = [ [], [] ];
       var fns = [primitives.compare, primitives.compare];
 
-      for (var i = 0; i < 500; i++) {
+      for (var i = 0; i < 1500; i++) {
         var a = crypto.randomBytes(250);
         datas[0].push({ a: a, b: invert(a) });
         datas[1].push({ a: a, b: new Buffer(a) });
