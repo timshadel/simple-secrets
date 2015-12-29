@@ -236,12 +236,12 @@ describe('primitive crypto functions', function() {
       }
 
       var resultsAAvsAB = bench(fns, datas);
-      var t = stats.t_test_two_sample(resultsAAvsAB[0], resultsAAvsAB[1]);
+      var t = stats.tTestTwoSample(resultsAAvsAB[0], resultsAAvsAB[1]);
       t = Math.abs(t);
       expect(t).to.be.lessThan(1.645); // A hacker may accept 90+% probability of difference
 
       var naiveAAvsAB = bench([naiveEquals, naiveEquals], datas);
-      t = stats.t_test_two_sample(naiveAAvsAB[0], naiveAAvsAB[1]);
+      t = stats.tTestTwoSample(naiveAAvsAB[0], naiveAAvsAB[1]);
       t = Math.abs(t);
       expect(t).to.be.greaterThan(1.960); // 95% sure that AA <> AB times
 
