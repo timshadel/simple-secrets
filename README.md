@@ -1,6 +1,8 @@
 
 # simple-secrets [![Build Status](https://travis-ci.org/timshadel/simple-secrets.png?branch=master)](https://travis-ci.org/timshadel/simple-secrets)
 
+# This fork is to move to a msgpack5 implementation compatible with msgpack-java v6, strings in this implementation are treated as byte arrays (not char arrays) and thus preserve high-bit encodings, the spec isn't specific as to how to handle character encodings and node's msgpack5 uses utf-8 which will not preserve high-bits, the modified/forked msgpack5.
+
 The Node.js implementation of a simple, opinionated library for encrypting small packets of data securely. Designed for exchanging tokens among systems written in a variety of programming languages: [Node.js][simple-secrets], [Ruby][simple-secrets.rb], [Objective-C][SimpleSecrets], [Java][simple-secrets.java], [Erlang][simple_secrets.erl].
 
 [simple-secrets]: https://github.com/timshadel/simple-secrets
