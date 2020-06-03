@@ -15,7 +15,7 @@
     "url": "git+https://github.com/timshadel/simple-secrets.git"
   },
   "dependencies": {
-    "base64url": "^0.0.x",
+    "base64url": "^3.0.x",
     "msgpack5": "git+https://github.com/octanner/msgpack5",
     "sinon": "^1.x"
   },
